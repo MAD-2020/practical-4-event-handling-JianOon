@@ -13,6 +13,14 @@ import android.widget.TextView;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
+    private Button ButtonLeft;
+    private Button ButtonMiddle;
+    private Button ButtonRight;
+    private TextView Scores;
+    private int ran;
+
+    private int score;
+    private static final String TAG = "ButtonActivity";
 
     /* Hint
         - The function setNewMole() uses the Random class to generate a random value ranged from 0 to 2.
@@ -25,13 +33,46 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.v(TAG, "Whack-A-Mole");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.v(TAG, "Finished Pre-Initialisation!");
-
+        ButtonLeft = (Button) findViewById(R.id.LeftButton);
+        ButtonRight = (Button) findViewById(R.id.RightButton);
+        ButtonMiddle = (Button) findViewById(R.id.MiddleButton);
+        Scores = (TextView) findViewById(R.id.scores);
+        score = 0;
+        ran = setNewMole();
+        Scores.setText(Integer.toString(score));
+        doCheck(ButtonLeft);
+        doCheck(ButtonMiddle);
+        doCheck(ButtonRight);
 
     }
+    private int setNewMole()
+    {
+        Random ran = new Random();
+        int randomLocation = ran.nextInt(3);
+        if(randomLocation == 0){
+            ButtonLeft.setText("*");
+            ButtonMiddle.setText("O");
+            ButtonRight.setText("O");
+        }
+        else if(randomLocation == 1){
+            ButtonMiddle.setText("*");
+            ButtonLeft.setText("O");
+            ButtonRight.setText("O");
+        }
+        else{
+            ButtonRight.setText("*");
+            ButtonMiddle.setText("O");
+            ButtonLeft.setText("O");
+        }
+        return randomLocation;
+
+    }
+
+
     @Override
     protected void onStart(){
         super.onStart();
@@ -51,27 +92,63 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    private void doCheck(Button checkButton) {
+    private void doCheck(final Button checkButton) {
         /* Checks for hit or miss and if user qualify for advanced page.
             Triggers nextLevelQuery().
          */
+        checkButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (checkButton.getText()=="*") {
+                    score = score + 1;
+                    Log.v(TAG, "Hit, score added!");
+                } else {
+                    score = score - 1;
+                    Log.v(TAG, "Missed, score deducted!");
+                }
+                Scores.setText(Integer.toString(score));
+                if (score%10 == 0 && score != 0) {
+                    nextLevelQuery(score);
+                } else {
+                    ran = setNewMole();
+                }
+
+
+            }
+        });
     }
 
-    private void nextLevelQuery(){
+    private void nextLevelQuery(final Integer score) {
         /*
         Builds dialog box here.
-        Log.v(TAG, "User accepts!");
-        Log.v(TAG, "User decline!");
-        Log.v(TAG, "Advance option given to user!");
-        belongs here*/
+        */
+
+        AlertDialog.Builder builder =  new AlertDialog.Builder(this);
+        builder.setTitle("Warning! Insane Whack-A-Mole incoming!");
+        builder.setMessage("Would you like to advance to advanced mole?");
+        builder.setCancelable(true);
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Log.v(TAG, "User accepts!");
+                nextLevel(score);
+                Log.v(TAG, "Advance option given to user!");
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                Log.v(TAG, "User decline!");
+
+            }
+        });
+        builder.show();
+
     }
 
-    private void nextLevel(){
+    private void nextLevel(Integer score) {
         /* Launch advanced page */
+        Intent nextlvl = new Intent(MainActivity.this, Main2Activity.class);
+        nextlvl.putExtra("Score", Integer.toString(score));
+        startActivity(nextlvl);
+
     }
 
-    private void setNewMole() {
-        Random ran = new Random();
-        int randomLocation = ran.nextInt(3);
-    }
 }
